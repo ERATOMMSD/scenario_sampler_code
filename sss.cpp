@@ -49,21 +49,25 @@ typedef list<size_t> ct_model;
 typedef vector<size_t> ct_row;
 
 // turns an xml list into a CT model, where each <choice> becomes a CT parameter
-void ct_model_of_xmls( xmls const& xs, ct_model& m ) {
-    m.clear();
+static void ct_model_of_xmls_inner( xmls const& xs, ct_model& m ) {
     FOREACH(x,xs) {
         if( x->is_element() ) {
             if( x->value == "choice" ) {
                 m.push_back( x->children.size() );
             } else {
-                ct_model_of_xmls( x->children, m );
+                ct_model_of_xmls_inner( x->children, m );
             }
         }
     }
 }
+ct_model ct_model_of_xmls( xmls const& xs ) {
+    ct_model ret;
+    ct_model_of_xmls_inner( xs, ret );
+    return ret;
+}
 
 // gets a xml list where <choice>s are resolved according to a CT row
-void apply_ct_row( xmls const& xs, ct_row::const_iterator& vit, xmls& ret ) {
+static void apply_ct_row( xmls const& xs, ct_row::const_iterator& vit, xmls& ret ) {
     FOREACH( x, xs ) {
         if( x->is_element() ) {
             if( x->value == "choice" ) {
@@ -78,12 +82,11 @@ void apply_ct_row( xmls const& xs, ct_row::const_iterator& vit, xmls& ret ) {
         }
     }
 }
-void apply_ct_rows( xmls const& xs, list<ct_row> const& rows, list<xmls>& ret ) {
-    FOREACH( row, rows ) {
-        ret.push_back( xmls() );
-        COPY( vit, row->begin() );
-        apply_ct_row( xs, vit, ret.back() );
-    }
+xmls xmls_of_ct_row( xmls const& xs, ct_row const& row ) {
+    xmls ret;
+    COPY( vit, row.begin() );
+    apply_ct_row( xs, vit, ret );
+    return ret;
 }
 
 // translates a CT model into the PICT language
@@ -262,8 +265,8 @@ void expand_random( xmls const& xs, xmls& out ) {
                 DEB( min << " <= " << val << " <= " << max );
                 out.push_back( xml::node(to_string(val)) );
             } else {
-                out.push_back(*x);
-                expand_text( x->children, out.back().children );
+                out.push_back( xml::node(*x) );
+                expand_random( x->children, out.back().children );
             }
         } else {
          out.push_back(*x);
@@ -349,9 +352,8 @@ int main( int argc, char** argv ) {
                 expand_choice( *xs2, xss3.back() );
             }
         } else {// combinatorial testing
-            ct_model m;
             list<ct_row> rows;
-            ct_model_of_xmls( *xs2, m );
+            ct_model m = ct_model_of_xmls(*xs2);
             // calling PICT
             {
                 TMPNAM(tmp);
@@ -380,7 +382,9 @@ int main( int argc, char** argv ) {
                 }
                 cerr << endl;
             }
-            apply_ct_rows( *xs2, rows, xss3 );
+            FOREACH(row,rows) {
+                xss3.push_back( xmls_of_ct_row( *xs2, *row ) );
+            }
         }
     }
     // expand <random>
