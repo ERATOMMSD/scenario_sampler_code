@@ -286,7 +286,7 @@ int main( int argc, char** argv ) {
     string s;
     istream* pis = &cin;
     unsigned int n_rep = 1;
-    unsigned int n_choice = 0;// 0 means using PICT!
+    unsigned int n_choice = 1;// 0 means using PICT!
     unsigned int n_unif = 1;
     unsigned int seed = time(NULL);
 
@@ -319,7 +319,7 @@ int main( int argc, char** argv ) {
                     n_rep = stoi(s);
                     break;
                 case 'c':
-                    s = force_arg( argv[i], arg, "1" );
+                    s = force_arg( argv[i], arg, "0" );
                     n_choice = stoi(s);
                     break;
                 case 's':
@@ -406,7 +406,7 @@ int main( int argc, char** argv ) {
         }
     }
     FOREACH(xs4,xss4) {
-        cout << *xs4 << "----" << endl;
+        cout << *xs4 << endl;
     }
 	exit(0);
 }
