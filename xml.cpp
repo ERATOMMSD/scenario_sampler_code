@@ -4,9 +4,27 @@
 using namespace std;
 
 void ignorespace( istream& is ) {
-	while( !is.eof() && isspace(is.peek()) ) {
-		is.get();
-	}
+    while( !is.eof() && isspace(is.peek()) ) {
+        is.get();
+    }
+}
+
+namespace xml {
+unknown<string> const node::find_attribute( char const* name ) const {
+    COPY( it, attr.find(name) );
+    if( it == attr.end() ) {
+        return unknown<string>();
+    } else {
+        return known<string>(it->second);
+    }
+}
+unknown<string> node::find_attribute( char const* name ) {
+    COPY( it, attr.find(name) );
+    if( it == attr.end() ) {
+        return unknown<string>();
+    } else {
+        return known<string>(it->second);
+    }
 }
 
 static void parse_attr( istream& is, map<string,string>& attr ) {
@@ -54,9 +72,9 @@ static void parse_attr( istream& is, map<string,string>& attr ) {
 	}
 }
 
-static void parse_element( istream& is, xml& xml ) {
+void parse( istream& is, xml::tree& xml ) {
 	char c;
-	xml.type = node::Element;
+	xml.set_element();
 	// parsing tag
 	for(;;) {
 		c = is.peek();
@@ -73,7 +91,7 @@ static void parse_element( istream& is, xml& xml ) {
 	c = is.peek();
 	if( c == '>' ) {
 		is.ignore();
-		parse_xml( is, xml.children );
+		parse_xmls( is, xml.children );
 	} else if( c == '/' ) {
 		is.ignore();
 		if( (c = is.get()) != '>' ) {
@@ -82,15 +100,15 @@ static void parse_element( istream& is, xml& xml ) {
 	}
 }
 
-void parse_xml( istream& is, xmls& xmls ) {
+void parse_xmls( istream& is, xmls& xmls ) {
 	bool text = false;
     bool any = false;
 	char c;
-    xml cur("");
+    tree cur("");
 	while( (c = is.get()) != EOF ) {
 		if( c == '<' ) {
             if( text ) {// place current text into the result list
-                xmls.push_back(xml(""));
+                xmls.push_back(tree(""));
                 swap(xmls.back(),cur);
             } else {// only spaces so far, ignore them
                 cur.value.clear();
@@ -104,8 +122,8 @@ void parse_xml( istream& is, xmls& xmls ) {
 				}
 				return;
 			}
-            xmls.push_back(xml());
-			parse_element( is, xmls.back() );
+            xmls.push_back(tree());
+			parse( is, xmls.back() );
 			text = false;
 		} else {
             if( !isspace(c) ) {
@@ -115,15 +133,15 @@ void parse_xml( istream& is, xmls& xmls ) {
 		}
 	}
     if( text ) {
-        xmls.push_back(xml());
+        xmls.push_back(tree());
         swap(xmls.back(),cur);
     }
 }
+};
 
-std::ostream& operator<<( ostream& os, xmls const& xmls ) {
+ostream& operator<<( ostream& os, xmls const& xmls ) {
 	FOREACH( x, xmls ) {
-		switch( x->type ) {
-		case node::Element:
+        if( x->is_element () ) {
 			os << '<' << x->value;
 			FOREACH( it, x->attr ) {
 				os << ' ' << it->first << "=\"" << it->second << '"';
@@ -133,10 +151,8 @@ std::ostream& operator<<( ostream& os, xmls const& xmls ) {
 			} else {
 				os << '>' << x->children << "</" << x->value << '>';
 			}
-			break;
-		case node::Text:
+        } else {
 			os << x->value;
-			break;
 		}
 	}
     return os;
