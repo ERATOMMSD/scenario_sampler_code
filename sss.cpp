@@ -206,14 +206,21 @@ void expand_repeat( xmls const& xs, xmls& out ) {
 		if( x->is_element() ) {
             if( x->value == "repeat" ) {
                 // parsing min and max
-                unknown<string> o_min = x->find_attribute( "minOccurs" );
-                unsigned int min = o_min.is_unknown() ? 0 : stoi(*o_min);
-                unknown<string> o_max = x->find_attribute( "maxOccurs" );
-                unsigned int max = o_max.is_unknown() ? UINT_MAX : stoi(*o_max);
-                unsigned int times = min + (rand() % (max-min));
+                string const* p_min = x->find_attribute( "minOccurs" );
+                unsigned int min = p_min == NULL ? 0 : stoi(*p_min);
+                string const* p_max = x->find_attribute( "maxOccurs" );
+                unsigned int max = p_max == NULL ? UINT_MAX : stoi(*p_max);
+                unsigned int times = min + (rand() % (max - min));
+                string const* p_delim = x->find_attribute( "delim" );
                 DEB( min << " <= " << times << " <= " << max );
-                for( unsigned int i = min; i <= times; i++ ) {
+                for( unsigned int i = min; ; i++ ) {
                     expand_repeat( x->children, out );
+                    if( i >= times ) {
+                        break;
+                    }
+                    if( p_delim != NULL ) {
+                        out.push_back(xml::node(*p_delim));
+                    }
                 }
             } else {
                 out.push_back(xml::node(*x));
@@ -251,17 +258,17 @@ void expand_random( xmls const& xs, xmls& out ) {
         if( x->is_element() ) {
             if( x->value == "random" ) {
                 // parsing min and max
-                unknown<string> o_min = x->find_attribute( "min" );
-                if( o_min.is_unknown() ) {
+                string const* p_min = x->find_attribute( "min" );
+                if( p_min == NULL ) {
                     ERR( "missing attribute 'min' in <random>" );
                 }
-                double min = stof(*o_min);
-                unknown<string> o_max = x->find_attribute( "max" );
-                if( o_max.is_unknown() ) {
+                double min = stof(*p_min);
+                string const* p_max = x->find_attribute( "max" );
+                if( p_max == NULL ) {
                     ERR( "missing attribute 'max' in <random>" );
                 }
-                double max = stof(*o_max);
-                double val = min + (double)rand()/RAND_MAX * (max-min);
+                double max = stof(*p_max);
+                double val = min + (double)rand()/RAND_MAX * (max - min);
                 DEB( min << " <= " << val << " <= " << max );
                 out.push_back( xml::node(to_string(val)) );
             } else {

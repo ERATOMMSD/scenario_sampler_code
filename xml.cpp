@@ -10,22 +10,31 @@ void ignorespace( istream& is ) {
 }
 
 using namespace xml;
-unknown<string> const node::find_attribute( char const* name ) const {
+string const* node::find_attribute( char const* name ) const {
     COPY( it, attr.find(name) );
     if( it == attr.end() ) {
-        return unknown<string>();
+        return NULL;
     } else {
-        return known<string>(it->second);
+        return &it->second;
     }
 }
-unknown<string> node::find_attribute( char const* name ) {
+string* node::find_attribute( char const* name ) {
     COPY( it, attr.find(name) );
     if( it == attr.end() ) {
-        return unknown<string>();
+        return NULL;
     } else {
-        return known<string>(it->second);
+        return &it->second;
     }
 }
+string const& node::get_attribute( char const* name, string const& def ) const {
+    string const* p = find_attribute(name);
+    if( p == NULL ) {
+        return def;
+    } else {
+        return *p;
+    }
+}
+
 
 static void parse_attr( istream& is, map<string,string>& attr ) {
 	for(;;) {

@@ -5,7 +5,6 @@
 #include<string>
 #include"util.hpp"
 #include"tree.hpp"
-#include"unknown.hpp"
 
 namespace xml {
     using namespace std;
@@ -48,9 +47,9 @@ public:
     void set_special() {
         type = Special;
     }
-    unknown<string> const find_attribute( char const* name ) const;
-    unknown<string> find_attribute( char const* name );
-    string const get_attribute_default( char const* name, string const& def ) const;
+    string const* find_attribute( char const* name ) const;
+    string* find_attribute( char const* name );
+    string const& get_attribute( char const* name, string const& def ) const;
     friend ostream& ::operator<<( ostream& os, xmls const& xmls );
     friend void parse_inner( istream& is, tree& xml );
     friend istream& ::operator>>( istream& is, xmls& xmls );
