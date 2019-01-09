@@ -1,0 +1,6 @@
+this is a random walk scenario.
+<repeat>Go <choice>
+             <text>left</text>
+             <text>right</text>
+           </choice>.
+</repeat>

@@ -209,7 +209,7 @@ void expand_repeat( xmls const& xs, xmls& out ) {
                 string const* p_min = x->find_attribute( "minOccurs" );
                 unsigned int min = p_min == NULL ? 0 : stoi(*p_min);
                 string const* p_max = x->find_attribute( "maxOccurs" );
-                unsigned int max = p_max == NULL ? UINT_MAX : stoi(*p_max);
+                unsigned int max = p_max == NULL ? min + 10 : stoi(*p_max);
                 unsigned int times = min + (rand() % (max - min));
                 string const* p_delim = x->find_attribute( "delim" );
                 DEB( min << " <= " << times << " <= " << max );
@@ -288,6 +288,8 @@ int main( int argc, char** argv ) {
     unsigned int n_rep = 1;
     unsigned int n_choice = 0;// 0 means using PICT!
     unsigned int n_unif = 1;
+    unsigned int seed = time(NULL);
+
     for( int i = 1; i < argc; i++ ) {
         split_arg( argv[i], &arg );
         if( argv[i][0] == '-' ) {
@@ -322,7 +324,7 @@ int main( int argc, char** argv ) {
                     break;
                 case 's':
                     s = force_arg( argv[i], arg );
-                    srand(stoi(s));
+                    seed = stoi(s);
                     break;
                 case 'u':
                     s = force_arg( argv[i], arg );
@@ -340,7 +342,8 @@ int main( int argc, char** argv ) {
         }
     }
     // main procesure
-	xmls xs0, xs1;
+    srand(seed);
+    xmls xs0, xs1;
     *pis >> xs0;
     expand_text( xs0, xs1 );
     list<xmls> xss2, xss3, xss4;
@@ -403,7 +406,7 @@ int main( int argc, char** argv ) {
         }
     }
     FOREACH(xs4,xss4) {
-        cout << *xs4 << endl << "----" << endl;
+        cout << *xs4 << "----" << endl;
     }
 	exit(0);
 }

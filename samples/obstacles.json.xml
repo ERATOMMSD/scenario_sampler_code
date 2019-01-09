@@ -1,10 +1,19 @@
-obstacles: [
- <repeat minOccurs=1 maxOccurs=5 delim=","> { position: <choice>
-    <random min="-10" max="0"/>
-    <random min=0 max=10/>
-    </choice>, speed: <choice>
+scenario: {
+  ego: {
+    position: <random min="-10" max="10"/>, speed: <choice>
         <text>0</text>
         <random min=0 max=30/>
         <random min=30 max=100/>
-    </choice> }
-</repeat>]
+    </choice>
+  }
+, obstacles: [
+   <repeat minOccurs=1 maxOccurs=5 delim=","> { position: <choice>
+      <random min="-10" max="0"/>
+      <random min=0 max=10/>
+      </choice>, speed: <choice>
+          <text>0</text>
+          <random min=0 max=30/>
+          <random min=30 max=100/>
+      </choice> }
+  </repeat>]
+}
