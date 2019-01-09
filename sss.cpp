@@ -310,7 +310,7 @@ int main( int argc, char** argv ) {
                     n_rep = stoi(s);
                     break;
                 case 'c':
-                    s = force_arg( argv[i], arg );
+                    s = force_arg( argv[i], arg, "1" );
                     n_choice = stoi(s);
                     break;
                 case 's':

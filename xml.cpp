@@ -72,7 +72,7 @@ static void parse_attr( istream& is, map<string,string>& attr ) {
 	}
 }
 
-istream& operator>>( istream& is, xml::tree& xml ) {
+void xml::parse_inner( istream& is, xml::tree& xml ) {
 	char c;
 	xml.set_element();
 	// parsing tag
@@ -98,7 +98,6 @@ istream& operator>>( istream& is, xml::tree& xml ) {
 			ERR( "unexpected: /" << c );
 		}
 	}
-    return is;
 }
 
 istream& operator>>( istream& is, xmls& xmls ) {
@@ -114,18 +113,39 @@ istream& operator>>( istream& is, xmls& xmls ) {
             } else {// only spaces so far, ignore them
                 cur.value.clear();
             }
-			if( is.peek() == '/' ) {
-				is.ignore();
-				while( is.get() != '>' ) {
-					if( is.eof() ) {
-						ERR( "unexpected EOF in tag close" );
-					}
-				}
-				return is;
-			}
+            c = is.peek();
+            if( c == '/' ) { // </...>
+                is.ignore();
+                while( is.get() != '>' ) {
+                    if( is.eof() ) {
+                        ERR( "unexpected EOF in tag close" );
+                    }
+                }
+                return is;
+            }
             xmls.push_back(xml::tree());
-			is >> xmls.back();
-			text = false;
+            LET(x,xmls.back());
+            text = false;
+            if( c == '?' ) { // <? ... ?>
+                x.set_special();
+                is.ignore();
+                for(;;) {
+                    c = is.get();
+                    if( c == '?' ) {
+                        c = is.get();
+                        if( c == '>' ) {// the closing "?>"
+                            break;
+                        }
+                        x.value.push_back('?');
+                    }
+                    if( c == EOF ) {
+                        ERR( "unexpected EOF in mata tag" );
+                    }
+                    x.value.push_back(c);
+                }
+            } else {
+                parse_inner(is,x);
+            }
 		} else {
             if( !isspace(c) ) {
                 text = true;
@@ -142,19 +162,25 @@ istream& operator>>( istream& is, xmls& xmls ) {
 
 ostream& operator<<( ostream& os, xmls const& xmls ) {
 	FOREACH( x, xmls ) {
-        if( x->is_element () ) {
-			os << '<' << x->value;
-			FOREACH( it, x->attr ) {
-				os << ' ' << it->first << "=\"" << it->second << '"';
-			}
-			if( x->children.empty() ) {
-				os << "/>";
-			} else {
-				os << '>' << x->children << "</" << x->value << '>';
-			}
-        } else {
-			os << x->value;
-		}
-	}
+        switch( x->type ) {
+            case xml::node::Element:
+                os << '<' << x->value;
+                FOREACH( it, x->attr ) {
+                    os << ' ' << it->first << "=\"" << it->second << '"';
+                }
+                if( x->children.empty() ) {
+                    os << "/>";
+                } else {
+                    os << '>' << x->children << "</" << x->value << '>';
+                }
+                break;
+            case xml::node::Text:
+                os << x->value;
+                break;
+            case xml::node::Special:
+                os << "<?" << x->value << "?>";
+                break;
+        }
+    }
     return os;
 }

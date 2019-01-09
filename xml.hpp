@@ -23,7 +23,7 @@ std::istream& operator>>( std::istream& is, xmls& xmls );
 
 class xml::node {
 private:
-	enum type { Element, Text } type;
+	enum type { Element, Text, Special } type;
     map<string,string> attr;
 public:
     string value;
@@ -36,17 +36,23 @@ public:
     bool is_text() const {
         return type == Text;
     }
+    bool is_special() const {
+        return type == Special;
+    }
     void set_element() {
         type = Element;
     }
     void set_text() {
         type = Text;
     }
+    void set_special() {
+        type = Special;
+    }
     unknown<string> const find_attribute( char const* name ) const;
     unknown<string> find_attribute( char const* name );
     string const get_attribute_default( char const* name, string const& def ) const;
     friend ostream& ::operator<<( ostream& os, xmls const& xmls );
-    friend istream& ::operator>>( istream& is, tree& xml );
+    friend void parse_inner( istream& is, tree& xml );
     friend istream& ::operator>>( istream& is, xmls& xmls );
 };
 
