@@ -331,7 +331,7 @@ int main( int argc, char** argv ) {
     }
     // main procesure
 	xmls xs0, xs1;
-    parse_xmls(*pis, xs0);
+    *pis >> xs0;
     expand_text( xs0, xs1 );
     list<xmls> xss2, xss3, xss4;
     DEB( xs1 << endl << "====" );

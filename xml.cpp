@@ -9,7 +9,7 @@ void ignorespace( istream& is ) {
     }
 }
 
-namespace xml {
+using namespace xml;
 unknown<string> const node::find_attribute( char const* name ) const {
     COPY( it, attr.find(name) );
     if( it == attr.end() ) {
@@ -72,7 +72,7 @@ static void parse_attr( istream& is, map<string,string>& attr ) {
 	}
 }
 
-void parse( istream& is, xml::tree& xml ) {
+istream& operator>>( istream& is, xml::tree& xml ) {
 	char c;
 	xml.set_element();
 	// parsing tag
@@ -91,24 +91,25 @@ void parse( istream& is, xml::tree& xml ) {
 	c = is.peek();
 	if( c == '>' ) {
 		is.ignore();
-		parse_xmls( is, xml.children );
+		is >> xml.children;
 	} else if( c == '/' ) {
 		is.ignore();
 		if( (c = is.get()) != '>' ) {
 			ERR( "unexpected: /" << c );
 		}
 	}
+    return is;
 }
 
-void parse_xmls( istream& is, xmls& xmls ) {
+istream& operator>>( istream& is, xmls& xmls ) {
 	bool text = false;
     bool any = false;
 	char c;
-    tree cur("");
+    xml::tree cur("");
 	while( (c = is.get()) != EOF ) {
 		if( c == '<' ) {
             if( text ) {// place current text into the result list
-                xmls.push_back(tree(""));
+                xmls.push_back(xml::tree(""));
                 swap(xmls.back(),cur);
             } else {// only spaces so far, ignore them
                 cur.value.clear();
@@ -120,10 +121,10 @@ void parse_xmls( istream& is, xmls& xmls ) {
 						ERR( "unexpected EOF in tag close" );
 					}
 				}
-				return;
+				return is;
 			}
-            xmls.push_back(tree());
-			parse( is, xmls.back() );
+            xmls.push_back(xml::tree());
+			is >> xmls.back();
 			text = false;
 		} else {
             if( !isspace(c) ) {
@@ -133,11 +134,11 @@ void parse_xmls( istream& is, xmls& xmls ) {
 		}
 	}
     if( text ) {
-        xmls.push_back(tree());
+        xmls.push_back(xml::tree());
         swap(xmls.back(),cur);
     }
+    return is;
 }
-};
 
 ostream& operator<<( ostream& os, xmls const& xmls ) {
 	FOREACH( x, xmls ) {

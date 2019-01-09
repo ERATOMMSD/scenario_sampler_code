@@ -18,6 +18,9 @@ typedef std::vector<xml::tree> xmls;
 
 std::ostream& operator<<( std::ostream& os, xmls const& xmls );
 
+std::istream& operator>>( std::istream& is, xml::tree& xml );
+std::istream& operator>>( std::istream& is, xmls& xmls );
+
 class xml::node {
 private:
 	enum type { Element, Text } type;
@@ -42,9 +45,9 @@ public:
     unknown<string> const find_attribute( char const* name ) const;
     unknown<string> find_attribute( char const* name );
     string const get_attribute_default( char const* name, string const& def ) const;
-    friend void parse( istream& is, xml::tree& xml );
-    friend void parse_xmls( istream& is, xmls& xmls );
     friend ostream& ::operator<<( ostream& os, xmls const& xmls );
+    friend istream& ::operator>>( istream& is, tree& xml );
+    friend istream& ::operator>>( istream& is, xmls& xmls );
 };
 
 
