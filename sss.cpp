@@ -148,7 +148,7 @@ void get_rows_pict( FILE* fp, list<ct_row>& rows ) {
                 v = 0;
                 any = false;
             }
-		} else if( isnumber(c) ) {
+		} else if( isdigit(c) ) {
 			v = v * 10 + c-'0';
             any = true;
         } else if( c == ',' || c == '\t' ) {

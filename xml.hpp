@@ -11,6 +11,8 @@ namespace xml {
 
     class node;
     typedef tree<node> tree;
+
+    void parse_inner( istream& is, tree& xml );
 };
 
 typedef std::vector<xml::tree> xmls;
@@ -50,9 +52,9 @@ public:
     string const* find_attribute( char const* name ) const;
     string* find_attribute( char const* name );
     string const& get_attribute( char const* name, string const& def ) const;
-    friend ostream& ::operator<<( ostream& os, xmls const& xmls );
+    friend ostream& ::operator<<( std::ostream& os, xmls const& xmls );
     friend void parse_inner( istream& is, tree& xml );
-    friend istream& ::operator>>( istream& is, xmls& xmls );
+    friend istream& ::operator>>( std::istream& is, xmls& xmls );
 };
 
 
